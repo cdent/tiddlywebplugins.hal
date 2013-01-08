@@ -58,8 +58,8 @@ def test_root():
     info = json.loads(content)
 
     assert info['_links']['self']['href'] == '/'
-    assert info['_links']['bags']['href'] == '/bags'
-    assert info['_links']['recipes']['href'] == '/recipes'
+    assert info['_links']['tiddlyweb:bags']['href'] == '/bags'
+    assert info['_links']['tiddlyweb:recipes']['href'] == '/recipes'
 
 
 def test_bags():
