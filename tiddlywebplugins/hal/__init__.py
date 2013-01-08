@@ -30,7 +30,7 @@ def replacement_root_handler(environ, start_response):
     Check if we want HAL, if so send it, otherwise
     do the default.
     """
-    serializer, mime_type = get_serialize_type(environ)
+    _, mime_type = get_serialize_type(environ)
     if 'application/hal+json' in mime_type:
         return _hal_root(environ, start_response)
     else:
@@ -61,5 +61,8 @@ tiddlyweb.web.handler.root = replacement_root_handler
 
 
 def init(config):
+    """
+    Initialize the plugin by establishing the serialization.
+    """
     config['extension_types'].update(EXTENSION_TYPES)
     config['serializers'].update(SERIALIZERS)

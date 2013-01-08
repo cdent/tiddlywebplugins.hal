@@ -24,6 +24,9 @@ class HalDocument(object):
         self.structure['_links'] = links.structure
 
     def to_json(self):
+        """
+        Dump the structure of the document as JSON.
+        """
         return json.dumps(self.structure)
 
 
@@ -36,6 +39,11 @@ class Links(object):
         self.structure = {}
 
     def add(self, link):
+        """
+        Add a link. For a new link, add it singular. If
+        there is a second of the same rel, become plurar
+        (that is, a list).
+        """
         if link.rel in self.structure:
             self.structure[link.rel] = [self.structure[link.rel]]
             self.structure[link.rel].append(link.to_dict())
@@ -54,6 +62,9 @@ class Link(object):
         self.kwargs = kwargs
 
     def to_dict(self):
+        """
+        Turn the link into a dictionary.
+        """
         result = {'href': self.href}
         for key in self.kwargs:
             if key in VALID_LINK_ATTRS:

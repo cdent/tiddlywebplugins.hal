@@ -6,7 +6,7 @@ from tiddlyweb.model.bag import Bag
 from tiddlyweb.model.policy import Policy
 from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.serializations import SerializationInterface
-from tiddlyweb.web.util import bag_url, recipe_url, tiddler_url, encode_name
+from tiddlyweb.web.util import bag_url, recipe_url, tiddler_url
 
 from .hal import HalDocument, Links, Link
 
