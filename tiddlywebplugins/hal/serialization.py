@@ -15,6 +15,7 @@ class Serialization(SerializationInterface):
     HAL.
     """
     
+    # To, eventually, have some discoverability.
     Curie = Link('curie', 'http://tiddlyweb.com/relations/{rel}',
             templated=True, name='tiddlyweb')
 
