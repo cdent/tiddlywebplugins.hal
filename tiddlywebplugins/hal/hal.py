@@ -4,6 +4,9 @@ Classes encapsulating the structure of a HAL Document.
 
 import json
 
+VALID_LINK_ATTRS = ['templated', 'type', 'name', 'profile', 'title',
+    'hreflang']
+
 class HalDocument(object):
     """
     A single HAL document, which can be nested in
@@ -52,5 +55,6 @@ class Link(object):
     def to_dict(self):
         result = {'href': self.href}
         for key in self.kwargs:
-            result[key] = self.kwargs[key]
+            if key in VALID_LINK_ATTRS:
+                result[key] = self.kwargs[key]
         return result
