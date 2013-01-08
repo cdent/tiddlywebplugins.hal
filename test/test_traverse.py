@@ -166,3 +166,63 @@ def test_bag_tiddlers():
 
     assert 'tiddlyweb:bag' in links
     assert links['tiddlyweb:bag']['href'] == '/bags/bag6'
+
+
+def test_bag_tiddler():
+    response, content = http.request(
+            'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4.hal')
+    assert response['status'] == '200', content
+    assert 'application/hal+json' in response['content-type']
+    info = json.loads(content)
+
+    links = info['_links']
+
+    assert info['title'] == 'tiddler4'
+    assert info['text'] == 'text4'
+    assert info['tags'] == ['tag4']
+
+    assert links['self']['href'] == '/bags/bag6/tiddlers/tiddler4'
+    assert links['tiddlyweb:tiddlers']['href'] == '/bags/bag6/tiddlers'
+    assert links['collection']['href'] == '/bags/bag6/tiddlers'
+    assert (links['tiddlyweb:tiddler_edit']['href']
+            == '/bags/bag6/tiddlers/tiddler4')
+    assert (links['tiddlyweb:tiddler_edit']['type']
+            == 'application/json')
+
+def test_tiddler_revisions():
+    tiddler = Tiddler('tiddler4', 'bag6')
+    tiddler.text = 'new text'
+    store.put(tiddler)
+
+    response, content = http.request(
+            'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4/revisions.hal')
+    assert response['status'] == '200', content
+    assert 'application/hal+json' in response['content-type']
+    info = json.loads(content)
+
+    links = info['_links']
+    tiddlers = info['_embedded']['tiddler']
+
+    assert len(tiddlers) == 2
+
+    assert (tiddlers[0]['_links']['self']['href']
+            == '/bags/bag6/tiddlers/tiddler4/revisions/2')
+
+    assert 'collection' in links
+    assert (links['collection']['href']
+            == '/bags/bag6/tiddlers/tiddler4/revisions')
+
+
+def test_one_tiddler_revision():
+    response, content = http.request(
+            'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4/revisions/1.hal')
+
+    assert response['status'] == '200', content
+    assert 'application/hal+json' in response['content-type']
+    info = json.loads(content)
+
+    links = info['_links']
+
+    assert (links['collection']['href']
+            == '/bags/bag6/tiddlers/tiddler4/revisions')
+    assert links['latest-version']['href'] == '/bags/bag6/tiddlers/tiddler4'

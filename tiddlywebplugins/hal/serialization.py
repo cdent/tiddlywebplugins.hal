@@ -2,11 +2,15 @@
 A HAL Serialization for bags, recipes, tiddlers, composition only.
 """
 
+from base64 import b64encode
+
 from tiddlyweb.model.bag import Bag
+from tiddlyweb.model.collections import Tiddlers
 from tiddlyweb.model.policy import Policy
 from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.serializations import SerializationInterface
-from tiddlyweb.web.util import bag_url, recipe_url, tiddler_url
+from tiddlyweb.web.util import bag_url, recipe_url, tiddler_url, encode_name
+from tiddlyweb.util import binary_tiddler
 
 from .hal import HalDocument, Links, Link
 
@@ -42,9 +46,13 @@ class Serialization(SerializationInterface):
         hal_entities = []
         for tiddler in tiddlers:
             links = Links()
-            links.add(Link('self', tiddler_url(
-                self.environ, tiddler, full=False)))
-            hal_entity = HalDocument(links, data=self._tiddler_dict(tiddler))
+            tiddler_link = tiddler_url(self.environ, tiddler, full=False)
+            if tiddlers.is_revisions:
+                tiddler_link += '/revisions/%s' % encode_name(
+                        unicode(tiddler.revision))
+            links.add(Link('self', tiddler_link))
+            hal_entity = HalDocument(links,
+                    data=self._tiddler_dict(tiddler, tiny=True))
             hal_entities.append(hal_entity.structure)
         links = Links()
         tiddler_links = self._tiddlers_links(tiddlers, tiddler)
@@ -68,6 +76,25 @@ class Serialization(SerializationInterface):
         entity_structure = dict(policy=self._get_policy(recipe.policy),
                 desc=recipe.desc, name=recipe.name, recipe=recipe.get_recipe())
         return self._entity_as(entity_structure, recipe_uri)
+
+    def tiddler_as(self, tiddler):
+        tiddler_link = tiddler_url(self.environ, tiddler, full=False)
+        links = Links()
+        links.add(self.Curie)
+
+        if 'revision' in self.environ['wsgiorg.routing_args'][1]:
+            links.add(Link('latest-version', tiddler_link))
+            links.add(Link('collection', tiddler_link + '/revisions'))
+        else:
+            collection_link = self._tiddlers_links(Tiddlers(), tiddler)['self']
+            links.add(Link('tiddlyweb:tiddlers', collection_link))
+            links.add(Link('collection', collection_link))
+            links.add(Link('self', tiddler_link))
+            links.add(Link('tiddlyweb:tiddler_edit', tiddler_link,
+                type='application/json'))
+
+        hal_entity = HalDocument(links, data=self._tiddler_dict(tiddler))
+        return hal_entity.to_json()
 
     def _entity_as(self, entity_structure, entity_uri):
         """
@@ -105,13 +132,26 @@ class Serialization(SerializationInterface):
         hal_doc = HalDocument(links, embed={embed_name: hal_entities})
         return hal_doc.to_json()
 
-    def _tiddler_dict(self, tiddler):
+    def _tiddler_dict(self, tiddler, tiny=False):
         """
         Represent a single tiddler as a simple dict. What goes in here
         will probably be the subject of debate for the rest of time.
-        Just stubbing in something for now.
+        Just stubbing in something for now. Dup'd from JSON serializer.
         """
-        return {'title': tiddler.title}
+        if tiny:
+            return {'title': tiddler.title}
+        else:
+            unwanted_keys = ['text', 'store']
+            wanted_keys = [attribute for attribute in tiddler.slots if
+                    attribute not in unwanted_keys]
+            wanted_info = {}
+            for attribute in wanted_keys:
+                wanted_info[attribute] = getattr(tiddler, attribute, None)
+            if binary_tiddler(tiddler):
+                wanted_info['text'] = b64encode(tiddler.text)
+            else:
+                wanted_info['text'] = tiddler.text
+            return wanted_info
 
     def _tiddlers_links(self, tiddlers, tiddler):
         """
@@ -120,20 +160,30 @@ class Serialization(SerializationInterface):
         do some special work, otherwise just look at the last
         tiddler in the collection to determine the container.
         """
-        links = {}
         if tiddlers.is_revisions:
-            pass  # XXX
+            links = {}
+            links['collection'] = '%s/%s/revisions' % (
+                    self._tiddlers_self(tiddler)['self'],
+                    encode_name(tiddler.title))
         elif tiddlers.is_search:
             pass  # XXX
         else:
-            if tiddler.recipe:
-                tiddlers_container = recipe_url(self.environ,
-                        Recipe(tiddler.recipe), full=False)
-                links['tiddlyweb:recipe'] = tiddlers_container
-            else:
-                tiddlers_container = bag_url(self.environ, Bag(tiddler.bag),
-                        full=False)
-                links['tiddlyweb:bag'] = tiddlers_container
-            tiddlers_self = tiddlers_container + '/tiddlers'
-            links['self'] = tiddlers_self
+            links = self._tiddlers_self(tiddler)
+        return links
+
+    def _tiddlers_self(self, tiddler):
+        """
+        Given a single tiddler from a collection determine the
+        self URI of that collection.
+        """
+        links = {}
+        if tiddler.recipe:
+            tiddlers_container = recipe_url(self.environ,
+                    Recipe(tiddler.recipe), full=False)
+            links['tiddlyweb:recipe'] = tiddlers_container
+        else:
+            tiddlers_container = bag_url(self.environ, Bag(tiddler.bag),
+                    full=False)
+            links['tiddlyweb:bag'] = tiddlers_container
+        links['self'] = tiddlers_container + '/tiddlers'
         return links
