@@ -14,6 +14,14 @@ Questions
 * To what extent does it make sense to list _all_ the alternate
   representations of a resource.
 * curie links...?
+* What are the appropriate link rels for things like:
+  * create a new bag
+  * create a new recipe
+  * create a new tiddler in this context (bag or recipe)
+  Further how do we declare that the METHOD used is PUT and the
+  media type is application/json? If that's what curie'd rels are
+  for, to point to the docs, how's that better than just, say, 
+  having some docs?
 
 Plan
 ====
