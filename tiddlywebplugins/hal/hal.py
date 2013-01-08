@@ -2,7 +2,10 @@
 Classes encapsulating the structure of a HAL Document.
 """
 
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 VALID_LINK_ATTRS = ['templated', 'type', 'name', 'profile', 'title',
     'hreflang']

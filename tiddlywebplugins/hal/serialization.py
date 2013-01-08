@@ -44,6 +44,7 @@ class Serialization(SerializationInterface):
         """
         # XXX fair bit of duplication with _list_collection
         hal_entities = []
+        tiddler = None
         for tiddler in tiddlers:
             links = Links()
             tiddler_link = tiddler_url(self.environ, tiddler, full=False)
@@ -55,9 +56,10 @@ class Serialization(SerializationInterface):
                     data=self._tiddler_dict(tiddler, tiny=True))
             hal_entities.append(hal_entity.structure)
         links = Links()
-        tiddler_links = self._tiddlers_links(tiddlers, tiddler)
-        for rel in tiddler_links:
-            links.add(Link(rel, tiddler_links[rel]))
+        if tiddler:
+            tiddler_links = self._tiddlers_links(tiddlers, tiddler)
+            for rel in tiddler_links:
+                links.add(Link(rel, tiddler_links[rel]))
         links.add(self.Curie)
         hal_doc = HalDocument(links, embed={'tiddler': hal_entities})
         return hal_doc.to_json()
@@ -111,7 +113,8 @@ class Serialization(SerializationInterface):
         """
         Generate a dict of the policy.
         """
-        return {key: getattr(policy, key) for key in Policy.attributes}
+        #return {key: getattr(policy, key) for key in Policy.attributes}
+        return dict([(key, getattr(policy, key)) for key in Policy.attributes])
 
     def _list_collection(self, entities, self_name, embed_name, url_maker):
         """
