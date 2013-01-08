@@ -1,4 +1,3 @@
-
 An effort to build a
 [HAL](http://stateless.co/hal_specification.html) serializer for
 TidldyWeb. The ideal outcomes of this experiment would be:
@@ -18,6 +17,7 @@ Questions
   * create a new bag
   * create a new recipe
   * create a new tiddler in this context (bag or recipe)
+  
   Further how do we declare that the METHOD used is PUT and the
   media type is application/json? If that's what curie'd rels are
   for, to point to the docs, how's that better than just, say, 
