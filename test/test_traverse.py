@@ -5,12 +5,15 @@ Test traverse the entire api.
 import shutil
 import json
 
+from pprint import pprint
+
 from wsgi_intercept import httplib2_intercept
 import wsgi_intercept
 import httplib2
 
 from tiddlyweb.config import config
 from tiddlyweb.model.bag import Bag
+from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.web.serve import load_app
 
 from tiddlywebplugins.utils import get_store
@@ -69,7 +72,6 @@ def test_bags():
 
     assert response['status'] == '200', content
     assert 'application/hal+json' in response['content-type']
-    print 'bag content', content
     info = json.loads(content)
 
     links = info['_links']
@@ -78,3 +80,21 @@ def test_bags():
     bags = info['_embedded']['bag']
     assert len(bags) == 5
 
+
+def test_recipes():
+    for i in range(5):
+        recipe = Recipe('recipe%s' % i)
+        store.put(recipe)
+
+    response, content = http.request('http://0.0.0.0:8080/recipes',
+            headers={'Accept': 'application/hal+json'})
+
+    assert response['status'] == '200', content
+    assert 'application/hal+json' in response['content-type']
+    info = json.loads(content)
+
+    links = info['_links']
+    assert links['self']['href'] == '/recipes'
+
+    recipes = info['_embedded']['recipe']
+    assert len(recipes) == 5

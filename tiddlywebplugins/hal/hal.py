@@ -16,7 +16,6 @@ class HalDocument(object):
         else:
             self.structure = {}
         if embed:
-            print 'embed', embed
             self.structure['_embedded'] = embed
         self.structure['_links'] = links.structure
 
