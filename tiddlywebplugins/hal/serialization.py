@@ -13,6 +13,9 @@ class Serialization(SerializationInterface):
     An implementation of SerializationInterface for presenting
     HAL.
     """
+    
+    Curie = Link('curie', 'http://tiddlyweb.com/relations/{rel}',
+            templated=True, name='tiddlyweb')
 
     def list_bags(self, bags):
         """
@@ -40,5 +43,6 @@ class Serialization(SerializationInterface):
            hal_entities.append(hal_entity.structure)
         links = Links()
         links.add(Link('self', '%s/%s' % (server_prefix, self_name)))
+        links.add(self.Curie)
         hal_doc = HalDocument(links, embed={embed_name: hal_entities})
         return hal_doc.to_json()

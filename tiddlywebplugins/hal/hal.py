@@ -44,17 +44,13 @@ class Link(object):
     Model of a HAL link.
     """
 
-    def __init__(self, rel, href, type=None):
+    def __init__(self, rel, href, **kwargs):
         self.rel = rel
         self.href = href
-        self.type = type
+        self.kwargs = kwargs
 
     def to_dict(self):
-        result = {}
-        for key in ['href', 'type']:
-            value = getattr(self, key)
-            if value:
-                result[key] = value
+        result = {'href': self.href}
+        for key in self.kwargs:
+            result[key] = self.kwargs[key]
         return result
-
-

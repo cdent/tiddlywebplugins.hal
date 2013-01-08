@@ -73,6 +73,7 @@ def test_bags():
     info = json.loads(content)
 
     links = info['_links']
+    assert links['curie']['href'] == 'http://tiddlyweb.com/relations/{rel}'
     assert links['self']['href'] == '/bags'
 
     bags = info['_embedded']['bag']
@@ -91,7 +92,11 @@ def test_recipes():
     assert 'application/hal+json' in response['content-type']
     info = json.loads(content)
 
+    # Handy for debugging, inspection etc.
+    #print; pprint(info); print
+
     links = info['_links']
+    assert links['curie']['href'] == 'http://tiddlyweb.com/relations/{rel}'
     assert links['self']['href'] == '/recipes'
 
     recipes = info['_embedded']['recipe']
