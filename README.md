@@ -22,6 +22,8 @@ Questions
   media type is application/json? If that's what curie'd rels are
   for, to point to the docs, how's that better than just, say, 
   having some docs?
+* It's clearly possible to make _many_ rels per entity, how to
+  decide?
 
 Plan
 ====
