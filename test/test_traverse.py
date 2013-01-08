@@ -41,8 +41,6 @@ def setup_module(module):
     wsgi_intercept.add_wsgi_intercept('0.0.0.0', 8080, app_fn)
     module.http = httplib2.Http()
 
-    module.active_rels = []
-
 
 def test_root():
     response, content = http.request('http://0.0.0.0:8080/')
