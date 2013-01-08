@@ -2,7 +2,7 @@
 Description of My Plugin.
 """
 
-import tiddlyweb.web.handler 
+import tiddlyweb.web.handler
 
 from tiddlyweb.web.util import get_serialize_type
 
@@ -18,11 +18,12 @@ SERIALIZERS = {
             'application/hal+json; charset=UTF-8']
 }
 ROOT_LINKS = {
-        'self': { 'href': '/' },
-        'alternate': { 'href': '/', 'type': 'text/html' },
-        'bags': { 'href': '/bags' },
-        'recipes': { 'href': '/recipes'}
+        'self': {'href': '/'},
+        'alternate': {'href': '/', 'type': 'text/html'},
+        'bags': {'href': '/bags'},
+        'recipes': {'href': '/recipes'}
 }
+
 
 def replacement_root_handler(environ, start_response):
     """

@@ -16,7 +16,7 @@ class Serialization(SerializationInterface):
     An implementation of SerializationInterface for presenting
     HAL.
     """
-    
+
     # To, eventually, have some discoverability.
     Curie = Link('curie', 'http://tiddlyweb.com/relations/{rel}',
             templated=True, name='tiddlyweb')
@@ -94,10 +94,11 @@ class Serialization(SerializationInterface):
         server_prefix = self.environ['tiddlyweb.config']['server_prefix']
         hal_entities = []
         for entity in entities:
-           links = Links()
-           links.add(Link('self', url_maker(self.environ, entity, full=False)))
-           hal_entity = HalDocument(links, data={'name': entity.name})
-           hal_entities.append(hal_entity.structure)
+            links = Links()
+            links.add(Link('self',
+                url_maker(self.environ, entity, full=False)))
+            hal_entity = HalDocument(links, data={'name': entity.name})
+            hal_entities.append(hal_entity.structure)
         links = Links()
         links.add(Link('self', '%s/%s' % (server_prefix, self_name)))
         links.add(self.Curie)
@@ -122,9 +123,9 @@ class Serialization(SerializationInterface):
         links = {}
         server_prefix = self.environ['tiddlyweb.config']['server_prefix']
         if tiddlers.is_revisions:
-            pass #  XXX
+            pass  # XXX
         elif tiddlers.is_search:
-            pass # XXX
+            pass  # XXX
         else:
             if tiddler.recipe:
                 tiddlers_container = recipe_url(self.environ,

@@ -37,7 +37,8 @@ def setup_module(module):
     from tiddlywebplugins.hal import init
     init(config)
 
-    def app_fn(): return load_app()
+    def app_fn():
+        return load_app()
     httplib2_intercept.install()
     wsgi_intercept.add_wsgi_intercept('0.0.0.0', 8080, app_fn)
     module.http = httplib2.Http()
@@ -141,6 +142,7 @@ def test_recipe():
     assert 'tiddlyweb:tiddlers' in links
     assert links['tiddlyweb:tiddlers']['href'] == '/recipes/recipe6/tiddlers'
 
+
 def test_bag_tiddlers():
     for i in range(5):
         tiddler = Tiddler('tiddler%s' % i, 'bag6')
@@ -148,19 +150,19 @@ def test_bag_tiddlers():
         tiddler.tags = ['tag%s' % i]
         store.put(tiddler)
 
-    response, content = http.request('http://0.0.0.0:8080/bags/bag6/tiddlers.hal')
+    response, content = http.request(
+            'http://0.0.0.0:8080/bags/bag6/tiddlers.hal')
     assert response['status'] == '200', content
     assert 'application/hal+json' in response['content-type']
     info = json.loads(content)
-
-    print; pprint(info); print
 
     links = info['_links']
     tiddlers = info['_embedded']['tiddler']
 
     assert len(tiddlers) == 5
 
-    assert tiddlers[0]['_links']['self']['href'] == '/bags/bag6/tiddlers/tiddler0'
+    assert (tiddlers[0]['_links']['self']['href']
+            == '/bags/bag6/tiddlers/tiddler0')
 
     assert 'tiddlyweb:bag' in links
     assert links['tiddlyweb:bag']['href'] == '/bags/bag6'

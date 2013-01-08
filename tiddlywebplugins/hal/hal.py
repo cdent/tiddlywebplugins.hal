@@ -7,6 +7,7 @@ import json
 VALID_LINK_ATTRS = ['templated', 'type', 'name', 'profile', 'title',
     'hreflang']
 
+
 class HalDocument(object):
     """
     A single HAL document, which can be nested in
