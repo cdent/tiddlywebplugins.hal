@@ -2,6 +2,7 @@
 A HAL Serialization for bags, recipes, tiddlers, composition only.
 """
 
+from tiddlyweb.model.policy import Policy
 from tiddlyweb.serializations import SerializationInterface
 from tiddlyweb.web.util import bag_url, recipe_url
 
@@ -28,6 +29,38 @@ class Serialization(SerializationInterface):
         Create a list of embedded recipes.
         """
         return self._list_collection(recipes, 'recipes', 'recipe', recipe_url)
+
+    def bag_as(self, bag):
+        """
+        A single bag as HAL
+        """
+        bag_uri = bag_url(self.environ, bag, full=False)
+        entity_structure = dict(policy=self._get_policy(bag.policy),
+                desc=bag.desc, name=bag.name)
+        return self._entity_as(entity_structure, bag_uri)
+
+    def recipe_as(self, recipe):
+        recipe_uri = recipe_url(self.environ, recipe, full=False)
+        entity_structure = dict(policy=self._get_policy(recipe.policy),
+                desc=recipe.desc, name=recipe.name, recipe=recipe.get_recipe())
+        return self._entity_as(entity_structure, recipe_uri)
+
+    def _entity_as(self, entity_structure, entity_uri):
+        """
+        A single bag or recipe.
+        """
+        links = Links()
+        links.add(self.Curie)
+        links.add(Link('tiddlyweb:tiddlers', entity_uri + '/tiddlers'))
+        links.add(Link('self', entity_uri))
+        hal_entity = HalDocument(links, data=entity_structure)
+        return hal_entity.to_json()
+
+    def _get_policy(self, policy):
+        """
+        Generate a dict of the policy.
+        """
+        return {key: getattr(policy, key) for key in Policy.attributes}
 
     def _list_collection(self, entities, self_name, embed_name, url_maker):
         """

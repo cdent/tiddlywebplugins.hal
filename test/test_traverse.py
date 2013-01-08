@@ -101,3 +101,41 @@ def test_recipes():
 
     recipes = info['_embedded']['recipe']
     assert len(recipes) == 5
+
+
+def test_bag():
+    bag = Bag('bag6')
+    bag.policy.write = ['foobar']
+    store.put(bag)
+
+    response, content = http.request('http://0.0.0.0:8080/bags/bag6.hal')
+    assert response['status'] == '200', content
+    assert 'application/hal+json' in response['content-type']
+    info = json.loads(content)
+
+    links = info['_links']
+    assert info['policy']['write'] == ['foobar']
+
+    assert 'tiddlyweb:tiddlers' in links
+    assert links['tiddlyweb:tiddlers']['href'] == '/bags/bag6/tiddlers'
+
+
+def test_recipe():
+    recipe = Recipe('recipe6')
+    recipe.policy.write = ['foobar']
+    recipe.set_recipe([('bag5', ''), ('bag6', 'tag:monkey')])
+    store.put(recipe)
+
+    response, content = http.request('http://0.0.0.0:8080/recipes/recipe6.hal')
+    assert response['status'] == '200', content
+    assert 'application/hal+json' in response['content-type']
+    info = json.loads(content)
+
+    links = info['_links']
+    assert info['policy']['write'] == ['foobar']
+    assert len(info['recipe']) == 2
+    assert info['recipe'][0][0] == 'bag5'
+    assert info['recipe'][1][1] == 'tag:monkey'
+
+    assert 'tiddlyweb:tiddlers' in links
+    assert links['tiddlyweb:tiddlers']['href'] == '/recipes/recipe6/tiddlers'
