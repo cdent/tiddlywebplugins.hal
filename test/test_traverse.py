@@ -14,6 +14,7 @@ import httplib2
 from tiddlyweb.config import config
 from tiddlyweb.model.bag import Bag
 from tiddlyweb.model.recipe import Recipe
+from tiddlyweb.model.tiddler import Tiddler
 from tiddlyweb.web.serve import load_app
 
 from tiddlywebplugins.utils import get_store
@@ -139,3 +140,27 @@ def test_recipe():
 
     assert 'tiddlyweb:tiddlers' in links
     assert links['tiddlyweb:tiddlers']['href'] == '/recipes/recipe6/tiddlers'
+
+def test_bag_tiddlers():
+    for i in range(5):
+        tiddler = Tiddler('tiddler%s' % i, 'bag6')
+        tiddler.text = 'text%s' % i
+        tiddler.tags = ['tag%s' % i]
+        store.put(tiddler)
+
+    response, content = http.request('http://0.0.0.0:8080/bags/bag6/tiddlers.hal')
+    assert response['status'] == '200', content
+    assert 'application/hal+json' in response['content-type']
+    info = json.loads(content)
+
+    print; pprint(info); print
+
+    links = info['_links']
+    tiddlers = info['_embedded']['tiddler']
+
+    assert len(tiddlers) == 5
+
+    assert tiddlers[0]['_links']['self']['href'] == '/bags/bag6/tiddlers/tiddler0'
+
+    assert 'tiddlyweb:bag' in links
+    assert links['tiddlyweb:bag']['href'] == '/bags/bag6'

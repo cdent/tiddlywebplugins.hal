@@ -2,9 +2,11 @@
 A HAL Serialization for bags, recipes, tiddlers, composition only.
 """
 
+from tiddlyweb.model.bag import Bag
 from tiddlyweb.model.policy import Policy
+from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.serializations import SerializationInterface
-from tiddlyweb.web.util import bag_url, recipe_url
+from tiddlyweb.web.util import bag_url, recipe_url, tiddler_url, encode_name
 
 from .hal import HalDocument, Links, Link
 
@@ -30,6 +32,27 @@ class Serialization(SerializationInterface):
         Create a list of embedded recipes.
         """
         return self._list_collection(recipes, 'recipes', 'recipe', recipe_url)
+
+    def list_tiddlers(self, tiddlers):
+        """
+        Create a list of embedded tiddlers. What link rels are needed
+        is dependent on context, which we have to...guess.
+        """
+        # XXX fair bit of duplication with _list_collection
+        hal_entities = []
+        for tiddler in tiddlers:
+            links = Links()
+            links.add(Link('self', tiddler_url(
+                self.environ, tiddler, full=False)))
+            hal_entity = HalDocument(links, data=self._tiddler_dict(tiddler))
+            hal_entities.append(hal_entity.structure)
+        links = Links()
+        tiddler_links = self._tiddlers_links(tiddlers, tiddler)
+        for rel in tiddler_links:
+            links.add(Link(rel, tiddler_links[rel]))
+        links.add(self.Curie)
+        hal_doc = HalDocument(links, embed={'tiddler': hal_entities})
+        return hal_doc.to_json()
 
     def bag_as(self, bag):
         """
@@ -80,3 +103,37 @@ class Serialization(SerializationInterface):
         links.add(self.Curie)
         hal_doc = HalDocument(links, embed={embed_name: hal_entities})
         return hal_doc.to_json()
+
+    def _tiddler_dict(self, tiddler):
+        """
+        Represent a single tiddler as a simple dict. What goes in here
+        will probably be the subject of debate for the rest of time.
+        Just stubbing in something for now.
+        """
+        return {'title': tiddler.title}
+
+    def _tiddlers_links(self, tiddlers, tiddler):
+        """
+        Establish the links to use with a tiddlers collection.
+        If the collection is a search or revisions we need to
+        do some special work, otherwise just look at the last
+        tiddler in the collection to determine the container.
+        """
+        links = {}
+        server_prefix = self.environ['tiddlyweb.config']['server_prefix']
+        if tiddlers.is_revisions:
+            pass #  XXX
+        elif tiddlers.is_search:
+            pass # XXX
+        else:
+            if tiddler.recipe:
+                tiddlers_container = recipe_url(self.environ,
+                        Recipe(tiddler.recipe), full=False)
+                links['tiddlyweb:recipe'] = tiddlers_container
+            else:
+                tiddlers_container = bag_url(self.environ, Bag(tiddler.bag),
+                        full=False)
+                links['tiddlyweb:bag'] = tiddlers_container
+            tiddlers_self = tiddlers_container + '/tiddlers'
+            links['self'] = tiddlers_self
+        return links
