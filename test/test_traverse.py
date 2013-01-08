@@ -3,7 +3,7 @@ Test traverse the entire api.
 """
 
 import shutil
-import simplejson
+import json
 
 from wsgi_intercept import httplib2_intercept
 import wsgi_intercept
@@ -52,7 +52,7 @@ def test_root():
 
     assert response['status'] == '200', content
     assert 'application/hal+json' in response['content-type']
-    info = simplejson.loads(content)
+    info = json.loads(content)
 
     assert info['_links']['self']['href'] == '/'
     assert info['_links']['bags']['href'] == '/bags'
@@ -70,7 +70,7 @@ def test_bags():
     assert response['status'] == '200', content
     assert 'application/hal+json' in response['content-type']
     print 'bag content', content
-    info = simplejson.loads(content)
+    info = json.loads(content)
 
     links = info['_links']
     assert links['self']['href'] == '/bags'
