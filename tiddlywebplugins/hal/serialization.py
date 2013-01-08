@@ -121,7 +121,6 @@ class Serialization(SerializationInterface):
         tiddler in the collection to determine the container.
         """
         links = {}
-        server_prefix = self.environ['tiddlyweb.config']['server_prefix']
         if tiddlers.is_revisions:
             pass  # XXX
         elif tiddlers.is_search:
