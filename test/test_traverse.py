@@ -19,9 +19,6 @@ from tiddlyweb.web.serve import load_app
 
 from tiddlywebplugins.utils import get_store
 
-MEANINGFUL_LINKS = ['bags', 'recipes', 'bag', 'recipe',
-    'tiddlers', 'revisions']
-
 
 def setup_module(module):
     """

@@ -11,7 +11,7 @@ import tiddlyweb.web.handler
 
 from tiddlyweb.web.util import get_serialize_type
 
-from .hal import HalDocument, Links, Link
+from hal import HalDocument, Links, Link
 from .serialization import Serialization
 
 ROOT_LINKS = {

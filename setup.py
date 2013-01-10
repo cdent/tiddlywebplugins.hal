@@ -23,6 +23,6 @@ setup(
     url = 'http://pypi.python.org/pypi/%s' % NAME,
     platforms = 'Posix; MacOS X; Windows',
     packages = find_packages(exclude=['test']),
-    install_requires = ['setuptools', 'tiddlyweb'],
+    install_requires = ['setuptools', 'tiddlyweb', 'hal'],
     zip_safe = False
     )

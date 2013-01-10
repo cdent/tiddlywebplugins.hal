@@ -12,7 +12,7 @@ from tiddlyweb.serializations.json import Serialization as JSON
 from tiddlyweb.web.util import bag_url, recipe_url, tiddler_url, encode_name
 from tiddlyweb.util import binary_tiddler
 
-from .hal import HalDocument, Links, Link
+from hal import HalDocument, Links, Link
 
 
 class Serialization(JSON):
