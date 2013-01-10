@@ -79,7 +79,7 @@ def test_bags():
     assert links['curie']['href'] == 'http://tiddlyweb.com/relations/{rel}'
     assert links['self']['href'] == '/bags'
 
-    bags = info['_embedded']['bag']
+    bags = info['_embedded']['tiddlyweb:bag']
     assert len(bags) == 5
 
 
@@ -102,7 +102,7 @@ def test_recipes():
     assert links['curie']['href'] == 'http://tiddlyweb.com/relations/{rel}'
     assert links['self']['href'] == '/recipes'
 
-    recipes = info['_embedded']['recipe']
+    recipes = info['_embedded']['tiddlyweb:recipe']
     assert len(recipes) == 5
 
 
@@ -160,7 +160,7 @@ def test_bag_tiddlers():
     info = json.loads(content)
 
     links = info['_links']
-    tiddlers = info['_embedded']['tiddler']
+    tiddlers = info['_embedded']['tiddlyweb:tiddler']
 
     assert len(tiddlers) == 5
 
@@ -205,7 +205,7 @@ def test_tiddler_revisions():
     info = json.loads(content)
 
     links = info['_links']
-    tiddlers = info['_embedded']['tiddler']
+    tiddlers = info['_embedded']['tiddlyweb:revision']
 
     assert len(tiddlers) == 2
 

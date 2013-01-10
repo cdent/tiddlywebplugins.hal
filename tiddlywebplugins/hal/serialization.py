@@ -44,6 +44,7 @@ class Serialization(SerializationInterface):
         """
         # XXX fair bit of duplication with _list_collection
         hal_entities = []
+        embed_name = 'tiddlyweb:tiddler'
         tiddler = None
         for tiddler in tiddlers:
             links = Links()
@@ -51,6 +52,7 @@ class Serialization(SerializationInterface):
             if tiddlers.is_revisions:
                 tiddler_link += '/revisions/%s' % encode_name(
                         unicode(tiddler.revision))
+                embed_name = 'tiddlyweb:revision'
             links.add(Link('self', tiddler_link))
             hal_entity = HalDocument(links,
                     data=self._tiddler_dict(tiddler, tiny=True))
@@ -60,7 +62,7 @@ class Serialization(SerializationInterface):
         for rel in tiddler_links:
             links.add(Link(rel, tiddler_links[rel]))
         links.add(self.Curie)
-        hal_doc = HalDocument(links, embed={'tiddler': hal_entities})
+        hal_doc = HalDocument(links, embed={embed_name: hal_entities})
         return hal_doc.to_json()
 
     def bag_as(self, bag):
@@ -141,7 +143,8 @@ class Serialization(SerializationInterface):
         links = Links()
         links.add(Link('self', '%s/%s' % (server_prefix, self_name)))
         links.add(self.Curie)
-        hal_doc = HalDocument(links, embed={embed_name: hal_entities})
+        hal_doc = HalDocument(links, embed={
+            'tiddlyweb:%s' % embed_name: hal_entities})
         return hal_doc.to_json()
 
     def _tiddler_dict(self, tiddler, tiny=False):
