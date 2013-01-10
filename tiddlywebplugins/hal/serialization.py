@@ -50,8 +50,9 @@ class Serialization(JSON):
         hal_entities, embed_name, info_tiddler = self._embedded_tiddlers(
                 tiddlers)
 
-        links = Links()
         tiddler_links = self._tiddlers_links(tiddlers, info_tiddler)
+
+        links = Links()
         for rel in tiddler_links:
             links.add(Link(rel, tiddler_links[rel]))
         links.add(self.Curie)
@@ -148,7 +149,6 @@ class Serialization(JSON):
         """
         Generate a dict of the policy.
         """
-        #return {key: getattr(policy, key) for key in Policy.attributes}
         return dict([(key, getattr(policy, key)) for key in Policy.attributes])
 
     def _list_collection(self, entities, self_name, embed_name, url_maker):
