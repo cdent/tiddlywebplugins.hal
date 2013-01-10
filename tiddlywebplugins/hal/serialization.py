@@ -75,7 +75,6 @@ class Serialization(JSON):
         return self._entity_as(entity_structure, recipe_uri, 'recipes')
 
     def tiddler_as(self, tiddler):
-        tiddler_link = tiddler_url(self.environ, tiddler, full=False)
         links = Links()
         links.add(self.Curie)
 
@@ -83,15 +82,8 @@ class Serialization(JSON):
             for link in self._revision_links(tiddler):
                 links.add(link)
         else:
-            collection_link = self._tiddlers_links(Tiddlers(), tiddler)['self']
-            links.add(Link('tiddlyweb:tiddlers', collection_link))
-            links.add(Link('collection', collection_link))
-            links.add(Link('tiddlyweb:bag', bag_url(self.environ,
-                Bag(tiddler.bag), full=False)))
-            if tiddler.recipe:
-                links.add(Link('tiddlyweb:recipe', recipe_url(self.environ,
-                    Recipe(tiddler.recipe), full=False)))
-            links.add(Link('self', tiddler_link))
+            for link in self._tiddler_links(tiddler):
+                links.add(link)
 
         hal_entity = HalDocument(links, data=self._tiddler_dict(
             tiddler, fat=True))
@@ -171,6 +163,23 @@ class Serialization(JSON):
             Link('collection', tiddler_link + '/revisions'),
             Link('tiddlyweb:revisions', tiddler_link + '/revisions')
         ]
+
+    def _tiddler_links(self, tiddler):
+        """
+        The links to provie with a single tiddler.
+        """
+        links = []
+        tiddler_link = tiddler_url(self.environ, tiddler, full=False)
+        collection_link = self._tiddlers_links(Tiddlers(), tiddler)['self']
+        links.append(Link('tiddlyweb:tiddlers', collection_link))
+        links.append(Link('collection', collection_link))
+        links.append(Link('tiddlyweb:bag', bag_url(self.environ,
+            Bag(tiddler.bag), full=False)))
+        if tiddler.recipe:
+            links.append(Link('tiddlyweb:recipe', recipe_url(self.environ,
+                Recipe(tiddler.recipe), full=False)))
+        links.append(Link('self', tiddler_link))
+        return links
 
     def _tiddlers_links(self, tiddlers, tiddler):
         """
