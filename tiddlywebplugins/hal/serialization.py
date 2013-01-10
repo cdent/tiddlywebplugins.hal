@@ -100,8 +100,6 @@ class Serialization(SerializationInterface):
                 links.add(Link('tiddlyweb:recipe', recipe_url(self.environ,
                     Recipe(tiddler.recipe), full=False)))
             links.add(Link('self', tiddler_link))
-            links.add(Link('tiddlyweb:tiddler_edit', tiddler_link,
-                type='application/json'))
 
         hal_entity = HalDocument(links, data=self._tiddler_dict(tiddler))
         return hal_entity.to_json()

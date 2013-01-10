@@ -188,10 +188,6 @@ def test_bag_tiddler():
     assert links['tiddlyweb:tiddlers']['href'] == '/bags/bag6/tiddlers'
     assert links['tiddlyweb:bag']['href'] == '/bags/bag6'
     assert links['collection']['href'] == '/bags/bag6/tiddlers'
-    assert (links['tiddlyweb:tiddler_edit']['href']
-            == '/bags/bag6/tiddlers/tiddler4')
-    assert (links['tiddlyweb:tiddler_edit']['type']
-            == 'application/json')
 
 def test_tiddler_revisions():
     tiddler = Tiddler('tiddler4', 'bag6')
