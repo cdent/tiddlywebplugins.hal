@@ -80,10 +80,8 @@ class Serialization(JSON):
         links.add(self.Curie)
 
         if 'revision' in self.environ['wsgiorg.routing_args'][1]:
-            links.add(Link('latest-version', tiddler_link))
-            links.add(Link('tiddlyweb:tiddler', tiddler_link))
-            links.add(Link('collection', tiddler_link + '/revisions'))
-            links.add(Link('tiddlyweb:revisions', tiddler_link + '/revisions'))
+            for link in self._revision_links(tiddler):
+                links.add(link)
         else:
             collection_link = self._tiddlers_links(Tiddlers(), tiddler)['self']
             links.add(Link('tiddlyweb:tiddlers', collection_link))
@@ -161,6 +159,18 @@ class Serialization(JSON):
         hal_doc = HalDocument(links, embed={
             'tiddlyweb:%s' % embed_name: hal_entities})
         return hal_doc.to_json()
+
+    def _revision_links(self, tiddler):
+        """
+        The links to provide with a single revision.
+        """
+        tiddler_link = tiddler_url(self.environ, tiddler, full=False)
+        return [
+            Link('latest-version', tiddler_link),
+            Link('tiddlyweb:tiddler', tiddler_link),
+            Link('collection', tiddler_link + '/revisions'),
+            Link('tiddlyweb:revisions', tiddler_link + '/revisions')
+        ]
 
     def _tiddlers_links(self, tiddlers, tiddler):
         """
