@@ -46,25 +46,12 @@ class Serialization(JSON):
         Create a list of embedded tiddlers. What link rels are needed
         is dependent on context, which we have to...guess.
         """
-        hal_entities = []
-        embed_name = 'tiddlyweb:tiddler'
-        tiddler = None
 
-        # Add embedded tiddlers
-        for tiddler in tiddlers:
-            links = Links()
-            tiddler_link = tiddler_url(self.environ, tiddler, full=False)
-            if tiddlers.is_revisions:
-                tiddler_link += '/revisions/%s' % encode_name(
-                        unicode(tiddler.revision))
-                embed_name = 'tiddlyweb:revision'
-            links.add(Link('self', tiddler_link))
-            hal_entity = HalDocument(links,
-                    data=self._tiddler_dict(tiddler))
-            hal_entities.append(hal_entity.structure)
+        hal_entities, embed_name, info_tiddler = self._embedded_tiddlers(
+                tiddlers)
 
         links = Links()
-        tiddler_links = self._tiddlers_links(tiddlers, tiddler)
+        tiddler_links = self._tiddlers_links(tiddlers, info_tiddler)
         for rel in tiddler_links:
             links.add(Link(rel, tiddler_links[rel]))
         links.add(self.Curie)
@@ -111,6 +98,28 @@ class Serialization(JSON):
         hal_entity = HalDocument(links, data=self._tiddler_dict(
             tiddler, fat=True))
         return hal_entity.to_json()
+
+    def _embedded_tiddlers(self, tiddlers):
+        """
+        Calculate the embedded tiddlers, return them, a
+        embed rel and if appropriate a single tiddler
+        holding bag and/or recipe information.
+        """
+        hal_entities = []
+        tiddler = None
+        embed_name = 'tiddlyweb:tiddler'
+        for tiddler in tiddlers:
+            links = Links()
+            tiddler_link = tiddler_url(self.environ, tiddler, full=False)
+            if tiddlers.is_revisions:
+                tiddler_link += '/revisions/%s' % encode_name(
+                        unicode(tiddler.revision))
+                embed_name = 'tiddlyweb:revision'
+            links.add(Link('self', tiddler_link))
+            hal_entity = HalDocument(links,
+                    data=self._tiddler_dict(tiddler))
+            hal_entities.append(hal_entity.structure)
+        return (hal_entities, embed_name, tiddler)
 
     def _entity_as(self, entity_structure, entity_uri, container):
         """
