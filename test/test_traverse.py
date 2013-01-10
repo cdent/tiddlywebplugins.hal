@@ -60,6 +60,7 @@ def test_root():
     assert info['_links']['self']['href'] == '/'
     assert info['_links']['tiddlyweb:bags']['href'] == '/bags'
     assert info['_links']['tiddlyweb:recipes']['href'] == '/recipes'
+    assert info['_links']['tiddlyweb:search']['href'] == '/search{?q}'
 
 
 def test_bags():
@@ -120,6 +121,7 @@ def test_bag():
 
     assert 'tiddlyweb:tiddlers' in links
     assert links['tiddlyweb:tiddlers']['href'] == '/bags/bag6/tiddlers'
+    assert links['tiddlyweb:bags']['href'] == '/bags'
 
 
 def test_recipe():
@@ -141,6 +143,7 @@ def test_recipe():
 
     assert 'tiddlyweb:tiddlers' in links
     assert links['tiddlyweb:tiddlers']['href'] == '/recipes/recipe6/tiddlers'
+    assert links['tiddlyweb:recipes']['href'] == '/recipes'
 
 
 def test_bag_tiddlers():
@@ -183,6 +186,7 @@ def test_bag_tiddler():
 
     assert links['self']['href'] == '/bags/bag6/tiddlers/tiddler4'
     assert links['tiddlyweb:tiddlers']['href'] == '/bags/bag6/tiddlers'
+    assert links['tiddlyweb:bag']['href'] == '/bags/bag6'
     assert links['collection']['href'] == '/bags/bag6/tiddlers'
     assert (links['tiddlyweb:tiddler_edit']['href']
             == '/bags/bag6/tiddlers/tiddler4')
@@ -208,9 +212,9 @@ def test_tiddler_revisions():
     assert (tiddlers[0]['_links']['self']['href']
             == '/bags/bag6/tiddlers/tiddler4/revisions/2')
 
-    assert 'collection' in links
-    assert (links['collection']['href']
+    assert (links['self']['href']
             == '/bags/bag6/tiddlers/tiddler4/revisions')
+    assert links['tiddlyweb:tiddler']['href'] == '/bags/bag6/tiddlers/tiddler4'
 
 
 def test_one_tiddler_revision():
@@ -226,3 +230,17 @@ def test_one_tiddler_revision():
     assert (links['collection']['href']
             == '/bags/bag6/tiddlers/tiddler4/revisions')
     assert links['latest-version']['href'] == '/bags/bag6/tiddlers/tiddler4'
+    assert links['tiddlyweb:tiddler']['href'] == '/bags/bag6/tiddlers/tiddler4'
+    assert (links['tiddlyweb:revisions']['href']
+        == '/bags/bag6/tiddlers/tiddler4/revisions')
+
+
+def test_search():
+    response, content = http.request(
+            'http://0.0.0.0:8080/search.hal?q=text')
+    assert response['status'] == '200', content
+    assert 'application/hal+json' in response['content-type']
+    info = json.loads(content)
+
+    links = info['_links']
+    assert 'curie' in links

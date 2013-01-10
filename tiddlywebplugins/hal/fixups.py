@@ -11,6 +11,7 @@ ROOT_LINKS = {
         'alternate': {'href': '/', 'type': 'text/html'},
         'tiddlyweb:bags': {'href': '/bags'},
         'tiddlyweb:recipes': {'href': '/recipes'},
+        'tiddlyweb:search': {'href': '/search{?q}', 'templated': True},
 }
 
 ORIGINAL_ROOT_HANDLER = tiddlyweb.web.handler.root
@@ -37,8 +38,9 @@ def _hal_root(environ, start_response):
     links = Links()
     for rel in ROOT_LINKS:
         link = Link(rel, '%s%s' % (server_prefix, ROOT_LINKS[rel]['href']))
-        if 'type' in ROOT_LINKS[rel]:
-            link.kwargs['type'] = ROOT_LINKS[rel]['type']
+        kwargs = ROOT_LINKS[rel]
+        del kwargs['href']
+        link.kwargs = kwargs
         links.add(link)
     links.add(Serialization.Curie)
 
