@@ -89,6 +89,18 @@ class Serialization(JSON):
             tiddler, fat=True))
         return hal_entity.to_json()
 
+    def _embedded_entities(self, entities, url_maker):
+        """
+        Calculate the entities embedded in bags or recipes.
+        """
+        def make_document(entity):
+            links = Links()
+            links.add(Link('self',
+                url_maker(self.environ, entity, full=False)))
+            return HalDocument(links, data={'name': entity.name}).structure
+
+        return [make_document(entity) for entity in entities]
+
     def _embedded_tiddlers(self, tiddlers):
         """
         Calculate the embedded tiddlers, return them, a
@@ -138,13 +150,7 @@ class Serialization(JSON):
         HAL JSON.
         """
         server_prefix = self.environ['tiddlyweb.config']['server_prefix']
-        hal_entities = []
-        for entity in entities:
-            links = Links()
-            links.add(Link('self',
-                url_maker(self.environ, entity, full=False)))
-            hal_entity = HalDocument(links, data={'name': entity.name})
-            hal_entities.append(hal_entity.structure)
+        hal_entities = self._embedded_entities(entities, url_maker)
         links = Links()
         links.add(Link('self', '%s/%s' % (server_prefix, self_name)))
         links.add(self.Curie)
