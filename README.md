@@ -24,6 +24,7 @@ Questions
   having some docs?
 * It's clearly possible to make _many_ rels per entity, how to
   decide?
+* Is HAL read-write or read (in general and in this application)
 
 Plan
 ====
