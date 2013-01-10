@@ -127,6 +127,14 @@ class Serialization(JSON):
         """
         A single bag or recipe.
         """
+        links = self._entity_links(entity_uri, container)
+        hal_entity = HalDocument(links, data=entity_structure)
+        return hal_entity.to_json()
+
+    def _entity_links(self, entity_uri, container):
+        """
+        Links for a bag or recipe entity.
+        """
         server_prefix = self.environ['tiddlyweb.config']['server_prefix']
         links = Links()
         links.add(self.Curie)
@@ -134,8 +142,7 @@ class Serialization(JSON):
             '%s/%s' % (server_prefix, container)))
         links.add(Link('tiddlyweb:tiddlers', entity_uri + '/tiddlers'))
         links.add(Link('self', entity_uri))
-        hal_entity = HalDocument(links, data=entity_structure)
-        return hal_entity.to_json()
+        return links
 
     def _get_policy(self, policy):
         """
@@ -151,9 +158,11 @@ class Serialization(JSON):
         """
         server_prefix = self.environ['tiddlyweb.config']['server_prefix']
         hal_entities = self._embedded_entities(entities, url_maker)
+
         links = Links()
         links.add(Link('self', '%s/%s' % (server_prefix, self_name)))
         links.add(self.Curie)
+
         hal_doc = HalDocument(links, embed={
             'tiddlyweb:%s' % embed_name: hal_entities})
         return hal_doc.to_json()
