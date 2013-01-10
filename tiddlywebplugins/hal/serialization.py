@@ -8,17 +8,21 @@ from tiddlyweb.model.bag import Bag
 from tiddlyweb.model.collections import Tiddlers
 from tiddlyweb.model.policy import Policy
 from tiddlyweb.model.recipe import Recipe
-from tiddlyweb.serializations import SerializationInterface
+from tiddlyweb.serializations.json import Serialization as JSON
 from tiddlyweb.web.util import bag_url, recipe_url, tiddler_url, encode_name
 from tiddlyweb.util import binary_tiddler
 
 from .hal import HalDocument, Links, Link
 
 
-class Serialization(SerializationInterface):
+class Serialization(JSON):
     """
     An implementation of SerializationInterface for presenting
-    HAL.
+    HAL. Subclasses the JSON serialization which provides two
+    things:
+
+    _tiddler_dict for representing the guts of a tiddler
+    the as_* methods, for handling writes
     """
 
     # To, eventually, have some discoverability.
@@ -42,10 +46,11 @@ class Serialization(SerializationInterface):
         Create a list of embedded tiddlers. What link rels are needed
         is dependent on context, which we have to...guess.
         """
-        # XXX fair bit of duplication with _list_collection
         hal_entities = []
         embed_name = 'tiddlyweb:tiddler'
         tiddler = None
+
+        # Add embedded tiddlers
         for tiddler in tiddlers:
             links = Links()
             tiddler_link = tiddler_url(self.environ, tiddler, full=False)
@@ -55,13 +60,15 @@ class Serialization(SerializationInterface):
                 embed_name = 'tiddlyweb:revision'
             links.add(Link('self', tiddler_link))
             hal_entity = HalDocument(links,
-                    data=self._tiddler_dict(tiddler, tiny=True))
+                    data=self._tiddler_dict(tiddler))
             hal_entities.append(hal_entity.structure)
+
         links = Links()
         tiddler_links = self._tiddlers_links(tiddlers, tiddler)
         for rel in tiddler_links:
             links.add(Link(rel, tiddler_links[rel]))
         links.add(self.Curie)
+
         hal_doc = HalDocument(links, embed={embed_name: hal_entities})
         return hal_doc.to_json()
 
@@ -101,7 +108,8 @@ class Serialization(SerializationInterface):
                     Recipe(tiddler.recipe), full=False)))
             links.add(Link('self', tiddler_link))
 
-        hal_entity = HalDocument(links, data=self._tiddler_dict(tiddler))
+        hal_entity = HalDocument(links, data=self._tiddler_dict(
+            tiddler, fat=True))
         return hal_entity.to_json()
 
     def _entity_as(self, entity_structure, entity_uri, container):
@@ -144,27 +152,6 @@ class Serialization(SerializationInterface):
         hal_doc = HalDocument(links, embed={
             'tiddlyweb:%s' % embed_name: hal_entities})
         return hal_doc.to_json()
-
-    def _tiddler_dict(self, tiddler, tiny=False):
-        """
-        Represent a single tiddler as a simple dict. What goes in here
-        will probably be the subject of debate for the rest of time.
-        Just stubbing in something for now. Dup'd from JSON serializer.
-        """
-        if tiny:
-            return {'title': tiddler.title}
-        else:
-            unwanted_keys = ['text', 'store']
-            wanted_keys = [attribute for attribute in tiddler.slots if
-                    attribute not in unwanted_keys]
-            wanted_info = {}
-            for attribute in wanted_keys:
-                wanted_info[attribute] = getattr(tiddler, attribute, None)
-            if binary_tiddler(tiddler):
-                wanted_info['text'] = b64encode(tiddler.text)
-            else:
-                wanted_info['text'] = tiddler.text
-            return wanted_info
 
     def _tiddlers_links(self, tiddlers, tiddler):
         """

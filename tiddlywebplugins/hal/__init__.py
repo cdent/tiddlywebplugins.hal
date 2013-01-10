@@ -25,4 +25,3 @@ def init(config):
     if 'selector' in config:
         replace_handler(config['selector'], '/', dict(
             GET=replacement_root_handler))
-

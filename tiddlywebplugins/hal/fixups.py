@@ -1,3 +1,11 @@
+"""
+A replacement root (/) handler that will send HAL
+instead of the default when asked for HAL.
+
+Unfortunately this will not work alongside other
+plugins which _also_ replace the root handler. This
+is, presumably, a bug.
+"""
 
 import tiddlyweb.web.handler
 
