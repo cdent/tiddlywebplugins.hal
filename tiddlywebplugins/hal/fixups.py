@@ -46,8 +46,10 @@ def _hal_root(environ, start_response):
     links = Links()
     for rel in ROOT_LINKS:
         link = Link(rel, '%s%s' % (server_prefix, ROOT_LINKS[rel]['href']))
-        kwargs = ROOT_LINKS[rel]
-        del kwargs['href']
+        kwargs = {}
+        for key in ROOT_LINKS[rel]:
+            if key is not 'href':
+                kwargs[key] = ROOT_LINKS[rel][key]
         link.kwargs = kwargs
         links.add(link)
     links.add(Serialization.Curie)
