@@ -54,10 +54,10 @@ def test_root():
     assert 'application/hal+json' in response['content-type']
     info = json.loads(content)
 
-    assert info['_links']['self']['href'] == '/'
-    assert info['_links']['tiddlyweb:bags']['href'] == '/bags'
-    assert info['_links']['tiddlyweb:recipes']['href'] == '/recipes'
-    assert info['_links']['tiddlyweb:search']['href'] == '/search{?q}'
+    assert info['_links']['self']['href'] == 'http://0.0.0.0:8080/'
+    assert info['_links']['tiddlyweb:bags']['href'] == 'http://0.0.0.0:8080/bags'
+    assert info['_links']['tiddlyweb:recipes']['href'] == 'http://0.0.0.0:8080/recipes'
+    assert info['_links']['tiddlyweb:search']['href'] == 'http://0.0.0.0:8080/search{?q}'
 
 
 def test_bags():
@@ -74,7 +74,7 @@ def test_bags():
 
     links = info['_links']
     assert links['curie']['href'] == 'http://tiddlyweb.com/relations/{rel}'
-    assert links['self']['href'] == '/bags'
+    assert links['self']['href'] == 'http://0.0.0.0:8080/bags'
 
     bags = info['_embedded']['tiddlyweb:bag']
     assert len(bags) == 5
@@ -97,7 +97,7 @@ def test_recipes():
 
     links = info['_links']
     assert links['curie']['href'] == 'http://tiddlyweb.com/relations/{rel}'
-    assert links['self']['href'] == '/recipes'
+    assert links['self']['href'] == 'http://0.0.0.0:8080/recipes'
 
     recipes = info['_embedded']['tiddlyweb:recipe']
     assert len(recipes) == 5
@@ -117,8 +117,8 @@ def test_bag():
     assert info['policy']['write'] == ['foobar']
 
     assert 'tiddlyweb:tiddlers' in links
-    assert links['tiddlyweb:tiddlers']['href'] == '/bags/bag6/tiddlers'
-    assert links['tiddlyweb:bags']['href'] == '/bags'
+    assert links['tiddlyweb:tiddlers']['href'] == 'http://0.0.0.0:8080/bags/bag6/tiddlers'
+    assert links['tiddlyweb:bags']['href'] == 'http://0.0.0.0:8080/bags'
 
 
 def test_recipe():
@@ -139,8 +139,8 @@ def test_recipe():
     assert info['recipe'][1][1] == 'tag:monkey'
 
     assert 'tiddlyweb:tiddlers' in links
-    assert links['tiddlyweb:tiddlers']['href'] == '/recipes/recipe6/tiddlers'
-    assert links['tiddlyweb:recipes']['href'] == '/recipes'
+    assert links['tiddlyweb:tiddlers']['href'] == 'http://0.0.0.0:8080/recipes/recipe6/tiddlers'
+    assert links['tiddlyweb:recipes']['href'] == 'http://0.0.0.0:8080/recipes'
 
 
 def test_bag_tiddlers():
@@ -162,10 +162,10 @@ def test_bag_tiddlers():
     assert len(tiddlers) == 5
 
     assert (tiddlers[0]['_links']['self']['href']
-            == '/bags/bag6/tiddlers/tiddler0')
+            == 'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler0')
 
     assert 'tiddlyweb:bag' in links
-    assert links['tiddlyweb:bag']['href'] == '/bags/bag6'
+    assert links['tiddlyweb:bag']['href'] == 'http://0.0.0.0:8080/bags/bag6'
 
 
 def test_bag_tiddler():
@@ -181,10 +181,10 @@ def test_bag_tiddler():
     assert info['text'] == 'text4'
     assert info['tags'] == ['tag4']
 
-    assert links['self']['href'] == '/bags/bag6/tiddlers/tiddler4'
-    assert links['tiddlyweb:tiddlers']['href'] == '/bags/bag6/tiddlers'
-    assert links['tiddlyweb:bag']['href'] == '/bags/bag6'
-    assert links['collection']['href'] == '/bags/bag6/tiddlers'
+    assert links['self']['href'] == 'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4'
+    assert links['tiddlyweb:tiddlers']['href'] == 'http://0.0.0.0:8080/bags/bag6/tiddlers'
+    assert links['tiddlyweb:bag']['href'] == 'http://0.0.0.0:8080/bags/bag6'
+    assert links['collection']['href'] == 'http://0.0.0.0:8080/bags/bag6/tiddlers'
 
 def test_tiddler_revisions():
     tiddler = Tiddler('tiddler4', 'bag6')
@@ -203,11 +203,11 @@ def test_tiddler_revisions():
     assert len(tiddlers) == 2
 
     assert (tiddlers[0]['_links']['self']['href']
-            == '/bags/bag6/tiddlers/tiddler4/revisions/2')
+            == 'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4/revisions/2')
 
     assert (links['self']['href']
-            == '/bags/bag6/tiddlers/tiddler4/revisions')
-    assert links['tiddlyweb:tiddler']['href'] == '/bags/bag6/tiddlers/tiddler4'
+            == 'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4/revisions')
+    assert links['tiddlyweb:tiddler']['href'] == 'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4'
 
 
 def test_one_tiddler_revision():
@@ -221,11 +221,11 @@ def test_one_tiddler_revision():
     links = info['_links']
 
     assert (links['collection']['href']
-            == '/bags/bag6/tiddlers/tiddler4/revisions')
-    assert links['latest-version']['href'] == '/bags/bag6/tiddlers/tiddler4'
-    assert links['tiddlyweb:tiddler']['href'] == '/bags/bag6/tiddlers/tiddler4'
+            == 'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4/revisions')
+    assert links['latest-version']['href'] == 'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4'
+    assert links['tiddlyweb:tiddler']['href'] == 'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4'
     assert (links['tiddlyweb:revisions']['href']
-        == '/bags/bag6/tiddlers/tiddler4/revisions')
+            == 'http://0.0.0.0:8080/bags/bag6/tiddlers/tiddler4/revisions')
 
 
 def test_search():

@@ -9,10 +9,11 @@ from tiddlyweb.model.collections import Tiddlers
 from tiddlyweb.model.policy import Policy
 from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.serializations.json import Serialization as JSON
-from tiddlyweb.web.util import bag_url, recipe_url, tiddler_url, encode_name
+from tiddlyweb.web.util import (bag_url, recipe_url, tiddler_url,
+        encode_name, server_base_url, get_route_value)
 from tiddlyweb.util import binary_tiddler
 
-from hal import HalDocument, Links, Link
+from simplehal import HalDocument, Links, Link
 
 
 class Serialization(JSON):
@@ -64,13 +65,13 @@ class Serialization(JSON):
         """
         A single bag as HAL
         """
-        bag_uri = bag_url(self.environ, bag, full=False)
+        bag_uri = bag_url(self.environ, bag, full=True)
         entity_structure = dict(policy=self._get_policy(bag.policy),
                 desc=bag.desc, name=bag.name)
         return self._entity_as(entity_structure, bag_uri, 'bags')
 
     def recipe_as(self, recipe):
-        recipe_uri = recipe_url(self.environ, recipe, full=False)
+        recipe_uri = recipe_url(self.environ, recipe, full=True)
         entity_structure = dict(policy=self._get_policy(recipe.policy),
                 desc=recipe.desc, name=recipe.name, recipe=recipe.get_recipe())
         return self._entity_as(entity_structure, recipe_uri, 'recipes')
@@ -97,7 +98,7 @@ class Serialization(JSON):
         def make_document(entity):
             links = Links()
             links.add(Link('self',
-                url_maker(self.environ, entity, full=False)))
+                url_maker(self.environ, entity, full=True)))
             return HalDocument(links, data={'name': entity.name}).structure
 
         return [make_document(entity) for entity in entities]
@@ -113,7 +114,7 @@ class Serialization(JSON):
         embed_name = 'tiddlyweb:tiddler'
         for tiddler in tiddlers:
             links = Links()
-            tiddler_link = tiddler_url(self.environ, tiddler, full=False)
+            tiddler_link = tiddler_url(self.environ, tiddler, full=True)
             if tiddlers.is_revisions:
                 tiddler_link += '/revisions/%s' % encode_name(
                         unicode(tiddler.revision))
@@ -136,11 +137,11 @@ class Serialization(JSON):
         """
         Links for a bag or recipe entity.
         """
-        server_prefix = self.environ['tiddlyweb.config']['server_prefix']
+        server_base = server_base_url(self.environ)
         links = Links()
         links.add(self.Curie)
         links.add(Link('tiddlyweb:%s' % container,
-            '%s/%s' % (server_prefix, container)))
+            '%s/%s' % (server_base, container)))
         links.add(Link('tiddlyweb:tiddlers', entity_uri + '/tiddlers'))
         links.add(Link('self', entity_uri))
         return links
@@ -153,14 +154,16 @@ class Serialization(JSON):
 
     def _list_collection(self, entities, self_name, embed_name, url_maker):
         """
-        Make a collection of either bags or recipes and retuns as
+        Make a collection of either bags or recipes and returns as
         HAL JSON.
         """
-        server_prefix = self.environ['tiddlyweb.config']['server_prefix']
+        server_base = server_base_url(self.environ)
         hal_entities = self._embedded_entities(entities, url_maker)
 
         links = Links()
-        links.add(Link('self', '%s/%s' % (server_prefix, self_name)))
+        links.add(Link('self', '%s/%s' % (server_base, self_name)))
+        links.add(Link('tiddlyweb:%s' % embed_name, '%s/%s/{%s}'
+            % (server_base, self_name, embed_name), templated=True))
         links.add(self.Curie)
 
         hal_doc = HalDocument(links, embed={
@@ -171,7 +174,7 @@ class Serialization(JSON):
         """
         The links to provide with a single revision.
         """
-        tiddler_link = tiddler_url(self.environ, tiddler, full=False)
+        tiddler_link = tiddler_url(self.environ, tiddler, full=True)
         return [
             Link('latest-version', tiddler_link),
             Link('tiddlyweb:tiddler', tiddler_link),
@@ -181,18 +184,18 @@ class Serialization(JSON):
 
     def _tiddler_links(self, tiddler):
         """
-        The links to provie with a single tiddler.
+        The links to provide with a single tiddler.
         """
         links = []
-        tiddler_link = tiddler_url(self.environ, tiddler, full=False)
+        tiddler_link = tiddler_url(self.environ, tiddler, full=True)
         collection_link = self._tiddlers_links(Tiddlers(), tiddler)['self']
         links.append(Link('tiddlyweb:tiddlers', collection_link))
         links.append(Link('collection', collection_link))
         links.append(Link('tiddlyweb:bag', bag_url(self.environ,
-            Bag(tiddler.bag), full=False)))
+            Bag(tiddler.bag), full=True)))
         if tiddler.recipe:
             links.append(Link('tiddlyweb:recipe', recipe_url(self.environ,
-                Recipe(tiddler.recipe), full=False)))
+                Recipe(tiddler.recipe), full=True)))
         links.append(Link('self', tiddler_link))
         return links
 
@@ -209,14 +212,43 @@ class Serialization(JSON):
         if tiddlers.is_revisions:
             links = {}
             links['self'] = '%s/%s/revisions' % (
-                    self._tiddlers_self(tiddler)['self'],
+                    self._tiddlers_collection_uri(),
                     encode_name(tiddler.title))
             links['tiddlyweb:tiddler'] = tiddler_url(self.environ,
-                    tiddler, full=False)
+                    tiddler, full=True)
             return links
 
+        links = {}
         if tiddler:
-            return self._tiddlers_self(tiddler)
+            links = self._tiddlers_self(tiddler)
+
+        tiddler_link = self._tiddlers_collection_uri()
+        if tiddler_link:
+            links['self'] = tiddler_link
+            links['tiddlyweb:tiddler'] = tiddler_link + '/{tiddler}'
+
+        return links
+
+    def _tiddlers_collection_uri(self):
+        """
+        Calculate the uri of the current tiddler collection.
+        This ought to use tiddlyweb.model.collection but
+        the code is not there yet.
+        """
+        recipe_name = bag_name = None
+        try:
+            recipe_name = get_route_value(self.environ, 'recipe_name')
+        except KeyError:
+            try:
+                bag_name = get_route_value(self.environ, 'bag_name')
+            except KeyError:
+                return None
+
+        if recipe_name:
+            base = recipe_url(self.environ, Recipe(recipe_name), full=True)
+        else:
+            base = bag_url(self.environ, Bag(bag_name), full=True)
+        return base + '/tiddlers'
 
     def _tiddlers_self(self, tiddler):
         """
@@ -226,11 +258,10 @@ class Serialization(JSON):
         links = {}
         if tiddler.recipe:
             tiddlers_container = recipe_url(self.environ,
-                    Recipe(tiddler.recipe), full=False)
+                    Recipe(tiddler.recipe), full=True)
             links['tiddlyweb:recipe'] = tiddlers_container
         else:
             tiddlers_container = bag_url(self.environ, Bag(tiddler.bag),
-                    full=False)
+                    full=True)
             links['tiddlyweb:bag'] = tiddlers_container
-        links['self'] = tiddlers_container + '/tiddlers'
         return links

@@ -9,9 +9,9 @@ is, presumably, a bug.
 
 import tiddlyweb.web.handler
 
-from tiddlyweb.web.util import get_serialize_type
+from tiddlyweb.web.util import get_serialize_type, server_base_url
 
-from hal import HalDocument, Links, Link
+from simplehal import HalDocument, Links, Link
 from .serialization import Serialization
 
 ROOT_LINKS = {
@@ -42,10 +42,10 @@ def _hal_root(environ, start_response):
     Compose a root HAL document linking to bags and recipes.
     """
 
-    server_prefix = environ['tiddlyweb.config']['server_prefix']
+    server_base = server_base_url(environ)
     links = Links()
     for rel in ROOT_LINKS:
-        link = Link(rel, '%s%s' % (server_prefix, ROOT_LINKS[rel]['href']))
+        link = Link(rel, '%s%s' % (server_base, ROOT_LINKS[rel]['href']))
         kwargs = {}
         for key in ROOT_LINKS[rel]:
             if key is not 'href':
